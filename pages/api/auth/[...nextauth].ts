@@ -152,11 +152,6 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         try {
           console.log('Starting authorization process');
-          console.log('Environment variables:', {
-            SF_CLIENT_ID: process.env.SF_CLIENT_ID ? 'Set' : 'Not Set',
-            SF_TOKEN_URL: process.env.SF_TOKEN_URL,
-            SF_INSTANCE_URL: process.env.SF_INSTANCE_URL
-          });
 
           if (!credentials?.username || !credentials?.password) {
             console.error('Missing credentials');
@@ -168,7 +163,8 @@ export const authOptions: NextAuthOptions = {
             client_id: process.env.SF_CLIENT_ID!,
             client_secret: process.env.SF_CLIENT_SECRET!,
             username: credentials.username,
-            password: credentials.password
+            password: credentials.password,
+            redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/credentials`
           });
 
           console.log('Attempting to get access token from Salesforce');
@@ -217,16 +213,11 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
-  pages: {
-    signIn: '/login',
-    error: '/login',
-    signOut: '/'
-  },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      if (url.startsWith("/")) return `${baseUrl}${url}`
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
     async jwt({ token, user }) {
       if (user) {
@@ -273,6 +264,11 @@ export const authOptions: NextAuthOptions = {
 
       return session;
     }
+  },
+  pages: {
+    signIn: '/login',
+    error: '/login',
+    signOut: '/'
   },
   session: {
     strategy: "jwt",
