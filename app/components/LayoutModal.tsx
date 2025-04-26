@@ -128,7 +128,7 @@ export default function LayoutModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full h-[90vh] max-w-6xl flex flex-col">
-        <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex justify-between items-center p-2 border-b">
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-semibold text-gray-800">
               店舗レイアウト
@@ -136,10 +136,6 @@ export default function LayoutModal({
             {selectedCustomer && (
               <div className="flex items-center space-x-4 text-sm text-gray-600">
                 <span>{selectedCustomer.name}様</span>
-                <span className="px-2 py-1 bg-gray-100 rounded">
-                  X: {selectedCustomer.xCoordinate}, Y:{" "}
-                  {selectedCustomer.yCoordinate}
-                </span>
               </div>
             )}
           </div>
@@ -163,10 +159,7 @@ export default function LayoutModal({
           </button>
         </div>
 
-        <div
-          ref={containerRef}
-          className="flex-1 overflow-hidden bg-gray-100 p-1"
-        >
+        <div ref={containerRef} className="flex-1 overflow-hidden">
           {imageUrl && imageSize ? (
             <div className="w-full h-full flex items-center justify-center">
               <div
