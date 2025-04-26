@@ -4,6 +4,22 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import axios from 'axios';
 import https from 'https';
 
+// 環境変数の検証
+const requiredEnvVars = [
+  'SF_CLIENT_ID',
+  'SF_CLIENT_SECRET',
+  'SF_TOKEN_URL',
+  'SF_INSTANCE_URL',
+  'NEXTAUTH_URL',
+  'NEXTAUTH_SECRET'
+];
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    throw new Error(`Missing required environment variable: ${envVar}`);
+  }
+}
+
 const CONNECTION_CONFIG = {
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,
@@ -15,7 +31,7 @@ const CONNECTION_CONFIG = {
 };
 
 const axiosInstance = axios.create({
-  httpsAgent: new https.Agent({ 
+  httpsAgent: new https.Agent({
     keepAlive: true,
     keepAliveMsecs: CONNECTION_CONFIG.KEEP_ALIVE_MSECS,
     maxSockets: CONNECTION_CONFIG.MAX_SOCKETS,
@@ -97,7 +113,7 @@ async function getUserInfo(accessToken: string) {
       }
     }
   );
-  
+
   if (!response.data.user_id) {
     throw new Error('Invalid user info response');
   }
@@ -128,17 +144,17 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
-      name: "Salesforce",
+      name: 'Credentials',
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) {
-          throw new Error('Username and password are required');
-        }
-
         try {
+          if (!credentials?.username || !credentials?.password) {
+            throw new Error('Missing credentials');
+          }
+
           const params = new URLSearchParams({
             grant_type: 'password',
             client_id: process.env.SF_CLIENT_ID!,
@@ -162,16 +178,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           const userInfo = await getUserInfo(response.data.access_token);
-          const shozokuTenpoId = await fetchUserCustomField(
-            response.data.access_token,
-            userInfo.user_id
-          );
-
-          tokenCache.set(credentials.username, {
-            accessToken: response.data.access_token,
-            refreshToken: response.data.refresh_token,
-            expiresAt: Date.now() + ((response.data.expires_in - 300) * 1000)
-          });
+          const customField = await fetchUserCustomField(response.data.access_token, userInfo.user_id);
 
           return {
             id: userInfo.user_id,
@@ -179,15 +186,12 @@ export const authOptions: NextAuthOptions = {
             email: userInfo.email,
             accessToken: response.data.access_token,
             refreshToken: response.data.refresh_token,
-            instanceUrl: process.env.SF_INSTANCE_URL,
-            shozokuTenpoId
+            instanceUrl: response.data.instance_url,
+            shozokuTenpoId: customField?.ShozokuTenpoId__c || null
           };
         } catch (error) {
           console.error('Authentication error:', error);
-          if (axios.isAxiosError(error) && error.response?.status === 400) {
-            throw new Error('Invalid credentials');
-          }
-          throw new Error('Authentication failed');
+          return null;
         }
       }
     })
