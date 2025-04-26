@@ -142,7 +142,6 @@ async function fetchUserCustomField(accessToken: string, userId: string) {
 }
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -218,11 +217,17 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
-  session: {
-    strategy: "jwt",
-    maxAge: 12 * 60 * 60
+  pages: {
+    signIn: '/login',
+    error: '/login',
+    signOut: '/'
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl
+    },
     async jwt({ token, user }) {
       if (user) {
         token.accessToken = user.accessToken;
@@ -269,11 +274,12 @@ export const authOptions: NextAuthOptions = {
       return session;
     }
   },
-  pages: {
-    signIn: "/login",
-    error: "/login"
+  session: {
+    strategy: "jwt",
+    maxAge: 12 * 60 * 60
   },
-  debug: true
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development'
 };
 
 export default NextAuth(authOptions);

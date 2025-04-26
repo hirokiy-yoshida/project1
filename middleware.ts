@@ -45,6 +45,11 @@ export default withAuth(
       );
     }
 
+    // /api/auth/signin へのアクセスを /login にリダイレクト
+    if (req.nextUrl.pathname.startsWith('/api/auth/signin')) {
+      return NextResponse.redirect(new URL('/login', req.url));
+    }
+
     const response = NextResponse.next();
     return setSecurityHeaders(response);
   },
@@ -65,5 +70,6 @@ export default withAuth(
 export const config = {
   matcher: [
     "/((?!api|_next/static|_next/image|favicon.ico|login).*)",
+    "/api/auth/signin"
   ],
 };
