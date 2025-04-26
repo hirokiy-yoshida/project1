@@ -1,8 +1,21 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { JWT } from "next-auth/jwt";
 
 // セキュリティヘッダーを設定する関数
 function setSecurityHeaders(response: NextResponse) {
+  // CORS設定
+  const allowedOrigins = process.env.NODE_ENV === 'production'
+    ? 'https://odersystem-953743a2c841.herokuapp.com'
+    : '*';
+
+  response.headers.set('Access-Control-Allow-Origin', allowedOrigins);
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  response.headers.set('Access-Control-Max-Age', '86400');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+
   // Content Security Policy
   response.headers.set(
     'Content-Security-Policy',
@@ -32,13 +45,13 @@ function setSecurityHeaders(response: NextResponse) {
 
 // ミドルウェアの設定を修正
 export default withAuth(
-  function middleware(req) {
+  function middleware(req: NextRequest) {
     const response = NextResponse.next();
     return setSecurityHeaders(response);
   },
   {
     callbacks: {
-      authorized: ({ token }) => {
+      authorized: ({ token }: { token: JWT | null }) => {
         // トークンの有効性を厳密にチェック
         if (!token) return false;
         if (typeof token.exp !== 'number') return false;
