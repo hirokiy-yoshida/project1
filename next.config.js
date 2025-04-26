@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       {
@@ -16,6 +17,22 @@ const nextConfig = {
   env: {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+  },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "header",
+            key: "x-forwarded-proto",
+            value: "(?!https)",
+          },
+        ],
+        permanent: true,
+        destination: "https://odersystem-953743a2c841.herokuapp.com/:path*",
+      },
+    ];
   },
   async headers() {
     return [
@@ -40,8 +57,17 @@ const nextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.salesforce.com;",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.salesforce.com https://odersystem-953743a2c841.herokuapp.com",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join("; "),
           },
           {
             key: "Referrer-Policy",
@@ -51,21 +77,6 @@ const nextConfig = {
             key: "Permissions-Policy",
             value:
               "camera=(), microphone=(), geolocation=(), interest-cohort=()",
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value:
-              process.env.NODE_ENV === "production"
-                ? "https://odersystem-953743a2c841.herokuapp.com"
-                : "*",
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, POST, PUT, DELETE, OPTIONS",
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "Content-Type, Authorization",
           },
         ],
       },
