@@ -16,25 +16,16 @@ function setSecurityHeaders(response: NextResponse) {
   response.headers.set('Access-Control-Max-Age', '86400');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
 
-  // Content Security Policy
+  // セキュリティヘッダー
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set(
     'Content-Security-Policy',
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.salesforce.com;"
   );
-
-  // XSS Protection
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-
-  // Content Type Options
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-
-  // Frame Options
-  response.headers.set('X-Frame-Options', 'DENY');
-
-  // Referrer Policy
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-  // Permissions Policy
   response.headers.set(
     'Permissions-Policy',
     'camera=(), microphone=(), geolocation=(), interest-cohort=()'
@@ -46,6 +37,14 @@ function setSecurityHeaders(response: NextResponse) {
 // ミドルウェアの設定を修正
 export default withAuth(
   function middleware(req: NextRequest) {
+    // HTTPSへのリダイレクト
+    if (process.env.NODE_ENV === 'production' && req.headers.get('x-forwarded-proto') !== 'https') {
+      return NextResponse.redirect(
+        `https://${req.headers.get('host')}${req.nextUrl.pathname}`,
+        301
+      );
+    }
+
     const response = NextResponse.next();
     return setSecurityHeaders(response);
   },
