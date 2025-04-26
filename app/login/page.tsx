@@ -22,7 +22,9 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("ログインに失敗しました。ユーザー名とパスワードを確認してください。");
+        setError(
+          "ログインに失敗しました。ユーザー名とパスワードを確認してください。"
+        );
       } else {
         router.push("/");
       }
@@ -35,17 +37,23 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full">
         <div className="bg-white py-8 px-6 shadow-lg rounded-lg">
-          <h2 className="text-2xl font-semibold text-gray-900 text-center mb-8">
-            おもてなしオーダーシステム
-          </h2>
+          <div className="text-center text-2xl font-bold mb-8">
+            ドリンクオーダーシステム
+          </div>
           {error && (
-            <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4 text-sm text-red-700" role="alert">
+            <div
+              className="mb-4 bg-red-50 border-l-4 border-red-400 p-4 text-sm text-red-700"
+              role="alert"
+            >
               <p>{error}</p>
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700"
+              >
                 ユーザー名
               </label>
               <input
@@ -59,7 +67,10 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 パスワード
               </label>
               <input

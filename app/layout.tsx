@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "ドリンクオーダーシステム",
-  description: "おもてなし用のドリンクやお菓子類のオーダー管理システム",
+  description: "ドリンクのオーダー管理システム",
 };
 
 export default function RootLayout({

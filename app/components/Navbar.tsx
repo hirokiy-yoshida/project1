@@ -10,7 +10,12 @@ type RefreshCallbackProps = {
   onLayoutClick?: () => void;
 };
 
-export default function Navbar({ onRefresh, isLoading, lastUpdated, onLayoutClick }: RefreshCallbackProps) {
+export default function Navbar({
+  onRefresh,
+  isLoading,
+  lastUpdated,
+  onLayoutClick,
+}: RefreshCallbackProps) {
   const { data: session } = useSession();
 
   const handleRefresh = useCallback(async () => {
@@ -25,9 +30,9 @@ export default function Navbar({ onRefresh, isLoading, lastUpdated, onLayoutClic
         <div className="flex h-16 items-center justify-between">
           {/* Left section */}
           <div className="flex items-center space-x-4">
-            <h1 className="text-lg font-semibold text-gray-900">
-              おもてなしオーダーシステム
-            </h1>
+            <div className="flex-1 text-xl font-semibold">
+              ドリンクオーダーシステム
+            </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleRefresh}
@@ -36,7 +41,7 @@ export default function Navbar({ onRefresh, isLoading, lastUpdated, onLayoutClic
                 title="データを更新"
               >
                 <svg
-                  className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
+                  className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"

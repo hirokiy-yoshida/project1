@@ -31,7 +31,7 @@ const axiosInstance = axios.create({
   maxRedirects: 5,
   validateStatus: status => status >= 200 && status < 300,
   headers: {
-    'User-Agent': 'Omotenashi-Order-System/1.0',
+    'User-Agent': 'Drink-Order-System/1.0',
   }
 });
 
@@ -151,7 +151,7 @@ async function getUserInfo(accessToken: string) {
       }
     }
   );
-  
+
   if (!response.data.user_id) {
     throw new Error('Invalid user info response');
   }
@@ -219,7 +219,8 @@ export const authOptions: NextAuthOptions = {
             params.toString(),
             {
               headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'Drink-Order-System/1.0',
               }
             }
           );
