@@ -16,6 +16,7 @@ const requiredEnvVars = [
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
+    console.error(`Missing required environment variable: ${envVar}`);
     throw new Error(`Missing required environment variable: ${envVar}`);
   }
 }
@@ -151,7 +152,15 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
+          console.log('Starting authorization process');
+          console.log('Environment variables:', {
+            SF_CLIENT_ID: process.env.SF_CLIENT_ID ? 'Set' : 'Not Set',
+            SF_TOKEN_URL: process.env.SF_TOKEN_URL,
+            SF_INSTANCE_URL: process.env.SF_INSTANCE_URL
+          });
+
           if (!credentials?.username || !credentials?.password) {
+            console.error('Missing credentials');
             throw new Error('Missing credentials');
           }
 
@@ -163,6 +172,7 @@ export const authOptions: NextAuthOptions = {
             password: credentials.password
           });
 
+          console.log('Attempting to get access token from Salesforce');
           const response = await axiosInstance.post(
             process.env.SF_TOKEN_URL!,
             params.toString(),
@@ -174,11 +184,16 @@ export const authOptions: NextAuthOptions = {
           );
 
           if (!response.data.access_token) {
+            console.error('No access token received from Salesforce');
             throw new Error('No access token received');
           }
 
+          console.log('Successfully obtained access token');
           const userInfo = await getUserInfo(response.data.access_token);
+          console.log('User info retrieved:', { userId: userInfo.user_id });
+
           const customField = await fetchUserCustomField(response.data.access_token, userInfo.user_id);
+          console.log('Custom field retrieved:', { shozokuTenpoId: customField });
 
           return {
             id: userInfo.user_id,
@@ -187,10 +202,17 @@ export const authOptions: NextAuthOptions = {
             accessToken: response.data.access_token,
             refreshToken: response.data.refresh_token,
             instanceUrl: response.data.instance_url,
-            shozokuTenpoId: customField?.ShozokuTenpoId__c || null
+            shozokuTenpoId: customField
           };
         } catch (error) {
           console.error('Authentication error:', error);
+          if (axios.isAxiosError(error)) {
+            console.error('Axios error details:', {
+              status: error.response?.status,
+              data: error.response?.data,
+              headers: error.response?.headers
+            });
+          }
           return null;
         }
       }
@@ -251,7 +273,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
     error: "/login"
   },
-  debug: process.env.NODE_ENV === 'development'
+  debug: true
 };
 
 export default NextAuth(authOptions);
