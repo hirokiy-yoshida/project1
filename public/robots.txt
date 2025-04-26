@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /login
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+Sitemap: https://odersystem-953743a2c841.herokuapp.com/sitemap.xml 

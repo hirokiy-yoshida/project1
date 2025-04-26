@@ -22,6 +22,7 @@
     "date-fns": "^2.30.0",
     "eslint": "8.49.0",
     "eslint-config-next": "13.5.2",
+    "helmet": "^7.1.0",
     "next": "13.5.2",
     "next-auth": "^4.24.5",
     "postcss": "8.4.30",

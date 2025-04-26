@@ -21,10 +21,10 @@ async function retryRequest(fn: () => Promise<any>, retries = 3) {
     } catch (error) {
       if (i === retries - 1) throw error;
       if (axios.isAxiosError(error) && error.response?.status === 401) throw error;
-      
+
       // Exponential backoff
       await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-      
+
       // Reset connection for next attempt
       if (axios.isAxiosError(error) && error.message.includes('socket hang up')) {
         axiosInstance.defaults.headers['Connection'] = 'close';
@@ -43,14 +43,14 @@ export async function PATCH(
   try {
     const cookieStore = cookies();
     const body = await request.json();
-    
+
     const token = await getToken({
       req: {
         cookies: Object.fromEntries(
           cookieStore.getAll().map(cookie => [cookie.name, cookie.value])
         ),
         headers: {
-          'host': 'localhost:3000',
+          'host': request.headers.get('host') || '',
           'cookie': cookieStore.toString()
         }
       } as any,
@@ -66,11 +66,11 @@ export async function PATCH(
 
     const { xCoordinate, yCoordinate } = body;
     if (
-      typeof xCoordinate !== 'number' || 
+      typeof xCoordinate !== 'number' ||
       typeof yCoordinate !== 'number' ||
-      xCoordinate < 0 || 
+      xCoordinate < 0 ||
       xCoordinate > 100 ||
-      yCoordinate < 0 || 
+      yCoordinate < 0 ||
       yCoordinate > 100
     ) {
       return NextResponse.json(
@@ -95,7 +95,7 @@ export async function PATCH(
     });
 
     if (response.status === 204) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: true,
         data: {
           customerId: params.customerId,
@@ -108,26 +108,109 @@ export async function PATCH(
     throw new Error('Unexpected response from Salesforce');
   } catch (error) {
     console.error('Error updating customer coordinates:', error);
-    
+
     if (axios.isAxiosError(error)) {
       const status = error.response?.status || 500;
       const details = error.response?.data || error.message;
-      
+
       if (status === 401) {
         return NextResponse.json(
           { error: 'Unauthorized', details },
           { status: 401 }
         );
       }
-      
+
       return NextResponse.json(
         { error: 'Salesforce API Error', details },
         { status }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Internal Server Error', details: 'Failed to update coordinates' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const cookieStore = cookies();
+    const { pathname } = new URL(request.url);
+    const customerId = pathname.split('/').pop();
+
+    if (!customerId) {
+      return NextResponse.json(
+        { error: 'Bad Request', details: 'Customer ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const token = await getToken({
+      req: {
+        cookies: Object.fromEntries(
+          cookieStore.getAll().map(cookie => [cookie.name, cookie.value])
+        ),
+        headers: {
+          'host': request.headers.get('host') || '',
+          'cookie': cookieStore.toString()
+        }
+      } as any,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+
+    if (!token?.accessToken || !token?.instanceUrl) {
+      return NextResponse.json(
+        { error: 'Unauthorized', details: 'Missing required token information' },
+        { status: 401 }
+      );
+    }
+
+    const response = await retryRequest(async () => {
+      return axiosInstance({
+        method: 'get',
+        url: `${token.instanceUrl}/services/data/v58.0/sobjects/TE_RaitenChipWork__c/${customerId}`,
+        headers: {
+          'Authorization': `Bearer ${token.accessToken}`,
+        }
+      });
+    });
+
+    if (response.status === 200) {
+      const data = response.data;
+      return NextResponse.json({
+        success: true,
+        data: {
+          customerId: customerId,
+          xCoordinate: data.Xzahyo__c,
+          yCoordinate: data.Yzahyo__c
+        }
+      });
+    }
+
+    throw new Error('Unexpected response from Salesforce');
+  } catch (error) {
+    console.error('Error retrieving customer coordinates:', error);
+
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status || 500;
+      const details = error.response?.data || error.message;
+
+      if (status === 401) {
+        return NextResponse.json(
+          { error: 'Unauthorized', details },
+          { status: 401 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: 'Salesforce API Error', details },
+        { status }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Internal Server Error', details: 'Failed to retrieve coordinates' },
       { status: 500 }
     );
   }

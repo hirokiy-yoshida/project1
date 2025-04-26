@@ -3,17 +3,17 @@ import axios from 'axios';
 import { cookies } from 'next/headers';
 import { getToken } from 'next-auth/jwt';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const cookieStore = cookies();
-    
+
     const token = await getToken({
       req: {
         cookies: Object.fromEntries(
           cookieStore.getAll().map(cookie => [cookie.name, cookie.value])
         ),
         headers: {
-          'host': 'localhost:3000',
+          'host': request.headers.get('host') || '',
           'cookie': cookieStore.toString()
         }
       } as any,
@@ -89,7 +89,7 @@ export async function GET() {
     }
 
     const versionRecord = contentVersionResponse.data.records[0];
-    
+
     // Get the actual file data
     const imageResponse = await axios({
       method: 'get',
@@ -115,17 +115,17 @@ export async function GET() {
 
   } catch (error) {
     console.error('Error in /api/layout:', error);
-    
+
     if (axios.isAxiosError(error)) {
       const status = error.response?.status || 500;
       const details = error.response?.data || error.message;
-      
+
       return NextResponse.json(
         { error: 'Salesforce API Error', details },
         { status }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Internal Server Error', details: 'Failed to fetch layout image' },
       { status: 500 }

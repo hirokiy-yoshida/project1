@@ -3,7 +3,7 @@ import axios from 'axios';
 import { cookies } from 'next/headers';
 import { getToken } from 'next-auth/jwt';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const cookieStore = cookies();
 
@@ -13,7 +13,7 @@ export async function GET() {
           cookieStore.getAll().map(cookie => [cookie.name, cookie.value])
         ),
         headers: {
-          'host': 'localhost:3000',
+          'host': request.headers.get('host') || '',
           'cookie': cookieStore.toString()
         }
       } as any,

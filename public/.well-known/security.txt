@@ -1,0 +1,9 @@
+# Security Contact Information
+Contact: mailto:yoshidahiroki@jp-business.jp
+Expires: 2025-12-31T23:59:59.000Z
+Preferred-Languages: ja, en
+Policy: https://odersystem-953743a2c841.herokuapp.com/security
+Canonical: https://odersystem-953743a2c841.herokuapp.com/.well-known/security.txt
+Encryption: https://odersystem-953743a2c841.herokuapp.com/.well-known/pgp-key.txt
+Acknowledgments: https://odersystem-953743a2c841.herokuapp.com/security/acknowledgments
+Hiring: https://odersystem-953743a2c841.herokuapp.com/careers 
