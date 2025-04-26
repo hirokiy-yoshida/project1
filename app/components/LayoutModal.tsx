@@ -165,13 +165,13 @@ export default function LayoutModal({
 
         <div
           ref={containerRef}
-          className="flex-1 overflow-hidden bg-gray-100 p-2"
+          className="flex-1 overflow-hidden bg-gray-100 p-1"
         >
           {imageUrl && imageSize ? (
             <div className="w-full h-full flex items-center justify-center">
               <div
                 ref={imageRef}
-                className="relative bg-white"
+                className="relative"
                 style={{
                   width: `${imageSize.width}px`,
                   height: `${imageSize.height}px`,
@@ -230,12 +230,6 @@ export default function LayoutModal({
                               }`}
                             >
                               {customer.name}様
-                              {isSelected && (
-                                <div className="text-gray-500">
-                                  ({customer.xCoordinate},{" "}
-                                  {customer.yCoordinate})
-                                </div>
-                              )}
                             </div>
                           </div>
                         </div>
